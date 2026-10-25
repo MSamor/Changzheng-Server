@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./changzheng.db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-sqlite.sql
+      data-locations: classpath:db/data.sql
+      continue-on-error: true

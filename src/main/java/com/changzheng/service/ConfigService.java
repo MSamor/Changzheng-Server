@@ -1,0 +1,3 @@
+package com.changzheng.service;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper; import com.changzheng.entity.SystemConfig; import com.changzheng.mapper.SystemConfigMapper; import lombok.RequiredArgsConstructor; import org.springframework.stereotype.Service;
+@Service @RequiredArgsConstructor public class ConfigService { private final SystemConfigMapper mapper; public int intValue(String key,int fallback){SystemConfig c=mapper.selectOne(new QueryWrapper<SystemConfig>().eq("config_key",key));try{return c==null?fallback:Integer.parseInt(c.getConfigValue());}catch(Exception e){return fallback;}}}

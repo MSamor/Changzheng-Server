@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: changzheng-server
+  profiles:
+    default: local
+server:
+  port: 8080
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+wechat:
+  app-id: ${WECHAT_APP_ID:}
+  app-secret: ${WECHAT_APP_SECRET:}
+  mock: ${WECHAT_MOCK:true}
