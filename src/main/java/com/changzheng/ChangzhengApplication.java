@@ -7,5 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @MapperScan("com.changzheng.mapper")
 public class ChangzhengApplication {
-    public static void main(String[] args) { SpringApplication.run(ChangzhengApplication.class, args); }
+    public static void main(String[] args) {
+        SpringApplication.run(ChangzhengApplication.class, args);
+    }
 }
