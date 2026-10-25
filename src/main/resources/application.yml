@@ -4,7 +4,7 @@ spring:
   profiles:
     default: local
 server:
-  port: 8080
+  port: 9555
 mybatis-plus:
   mapper-locations: classpath:/mapper/*.xml
   configuration:
