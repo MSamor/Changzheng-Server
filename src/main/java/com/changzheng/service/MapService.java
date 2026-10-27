@@ -27,7 +27,7 @@ public class MapService {
         List<RouteNode> nodes = route.nodes();
         int medal = 0;
         String arrived = nodes.isEmpty() ? "" : nodes.get(0).getCityName();
-        int next = 0;
+        Integer next = null;
         List<MapDataVO.PointVO> points = new ArrayList<>();
         for (RouteNode n : nodes) {
             if (mileage > 0 && mileage >= n.getRequiredMileage()) {
@@ -36,7 +36,10 @@ public class MapService {
                 points.add(
                         new MapDataVO.PointVO(
                                 n.getLongitude().doubleValue(), n.getLatitude().doubleValue()));
-            } else if (next == 0) next = Math.max(0, n.getRequiredMileage() - mileage);
+            }
+            if (next == null && n.getRequiredMileage() > mileage) {
+                next = n.getRequiredMileage() - mileage;
+            }
         }
         MapDataVO v = new MapDataVO();
         v.setAllRanking(rank.data(userId).getMyAllRank());
@@ -51,7 +54,9 @@ public class MapService {
         v.setDaysElapsed(
                 Math.max(0, Duration.between(userCreated(userId), LocalDateTime.now()).toDays()));
         v.setMedal(medal);
-        v.setNextStopKilometer(next);
+        boolean routeCompleted = !nodes.isEmpty() && next == null;
+        v.setRouteCompleted(routeCompleted);
+        v.setNextStopKilometer(routeCompleted ? Integer.valueOf(0) : next);
         v.setPoints(points);
         v.setTodayRedeemedSteps(exchange.todaySteps(userId));
         v.setTotalMileage(mileage);

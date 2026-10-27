@@ -16,7 +16,9 @@ public class MapDataVO {
     private int mileageUnit;
     private long daysElapsed;
     private int medal;
-    private int nextStopKilometer;
+    // Null when route data is unavailable; zero only after completing the route.
+    private Integer nextStopKilometer;
+    private boolean routeCompleted;
     private List<PointVO> points;
     private int todayRedeemedSteps;
     private int totalMileage;
