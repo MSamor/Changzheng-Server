@@ -71,6 +71,15 @@ public class ExchangeService {
         return x == null ? 0 : x.getStepCount();
     }
 
+    public boolean exchangedToday(Long userId) {
+        return mapper.selectCount(
+                        new QueryWrapper<StepExchange>()
+                                .eq("user_id", userId)
+                                .eq("exchange_date", LocalDate.now())
+                                .eq("status", 1))
+                > 0;
+    }
+
     public int todayMileage(Long userId) {
         StepExchange x =
                 mapper.selectOne(

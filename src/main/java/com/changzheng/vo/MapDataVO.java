@@ -9,6 +9,11 @@ public class MapDataVO {
     private long allRanking;
     private String arrivedCityName;
     private int convertSteps;
+    private int todaySteps;
+    private boolean exchangedToday;
+    private int minimumExchangeSteps;
+    private int stepUnit;
+    private int mileageUnit;
     private long daysElapsed;
     private int medal;
     private int nextStopKilometer;

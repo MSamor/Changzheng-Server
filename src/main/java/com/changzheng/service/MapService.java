@@ -1,7 +1,6 @@
 package com.changzheng.service;
 
 import com.changzheng.entity.*;
-import com.changzheng.mapper.StepExchangeMapper;
 import com.changzheng.vo.MapDataVO;
 
 import lombok.RequiredArgsConstructor;
@@ -17,14 +16,14 @@ public class MapService {
     private final ExchangeService exchange;
     private final StepService steps;
     private final RouteService route;
-    private final StepExchangeMapper exchangeMapper;
+    private final ConfigService config;
     private final RankService rank;
     private final UserService users;
 
     public MapDataVO get(Long userId) {
-        int mileage = exchange.totalMileage(userId),
-                todaySteps = steps.today(userId),
-                redeemed = exchange.todayMileage(userId);
+        int mileage = exchange.totalMileage(userId);
+        int todaySteps = steps.today(userId);
+        boolean exchangedToday = exchange.exchangedToday(userId);
         List<RouteNode> nodes = route.nodes();
         int medal = 0;
         String arrived = nodes.isEmpty() ? "" : nodes.get(0).getCityName();
@@ -42,7 +41,13 @@ public class MapService {
         MapDataVO v = new MapDataVO();
         v.setAllRanking(rank.data(userId).getMyAllRank());
         v.setArrivedCityName(arrived);
-        v.setConvertSteps(Math.max(0, todaySteps - exchange.todaySteps(userId)));
+        v.setTodaySteps(todaySteps);
+        v.setExchangedToday(exchangedToday);
+        // The activity permits one redemption per day; later steps are not redeemable today.
+        v.setConvertSteps(exchangedToday ? 0 : todaySteps);
+        v.setMinimumExchangeSteps(config.intValue("minimum_exchange_steps", 100));
+        v.setStepUnit(config.intValue("step_unit", 100));
+        v.setMileageUnit(config.intValue("mileage_unit", 20));
         v.setDaysElapsed(
                 Math.max(0, Duration.between(userCreated(userId), LocalDateTime.now()).toDays()));
         v.setMedal(medal);
