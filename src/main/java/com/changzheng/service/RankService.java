@@ -30,8 +30,8 @@ public class RankService {
             if (LocalDate.now().equals(x.getExchangeDate()))
                 today.merge(x.getUserId(), x.getMileage(), Integer::sum);
         }
-        List<RankUserVO> allList = make(users, total);
-        List<RankUserVO> todayList = make(users, today);
+        List<RankUserVO> allList = make(users, total, total);
+        List<RankUserVO> todayList = make(users, today, total);
         RankDataVO out = new RankDataVO();
         out.setAllRank(allList);
         out.setTodayRank(todayList);
@@ -42,7 +42,8 @@ public class RankService {
         return out;
     }
 
-    private List<RankUserVO> make(List<User> users, Map<Long, Integer> scores) {
+    private List<RankUserVO> make(
+            List<User> users, Map<Long, Integer> scores, Map<Long, Integer> total) {
         return users.stream()
                 .map(
                         u -> {
@@ -51,7 +52,7 @@ public class RankService {
                             v.setAvatarUrl(u.getAvatarUrl());
                             v.setNickname(u.getNickname());
                             v.setTotalMileage(scores.getOrDefault(u.getId(), 0));
-                            v.setArrivedCityName(arrived(v.getTotalMileage()));
+                            v.setArrivedCityName(arrived(total.getOrDefault(u.getId(), 0)));
                             return v;
                         })
                 .sorted(
