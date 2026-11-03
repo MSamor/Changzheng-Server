@@ -21,6 +21,11 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(40001, e.getBindingResult().getFieldError().getDefaultMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ApiResponse<Void> handleUploadSize(Exception e) {
+        return ApiResponse.error(40001, "请选择不超过5MB的头像图片");
+    }
+
     @ExceptionHandler(Exception.class)
     public ApiResponse<Void> handleOther(Exception e, HttpServletRequest request) {
         log.error("request failed: {} {}", request.getMethod(), request.getRequestURI(), e);

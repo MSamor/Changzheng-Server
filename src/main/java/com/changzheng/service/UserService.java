@@ -25,14 +25,31 @@ public class UserService {
 
     public User update(SaveUserInfoRequest r) {
         User u = get(r.getUserId());
-        u.setAvatarUrl(r.getAvatarUrl());
-        u.setCity(r.getCity());
-        u.setCountry(r.getCountry());
-        u.setGender(r.getGender());
-        u.setNickname(r.getNickname());
-        u.setProvince(r.getProvince());
+        if (r.getAvatarUrl() != null) {
+            String avatar = r.getAvatarUrl().trim();
+            if (!avatar.isEmpty()) {
+                try {
+                    java.net.URI uri = java.net.URI.create(avatar);
+                    if (!("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
+                            || uri.getHost() == null || uri.getUserInfo() != null) throw new IllegalArgumentException();
+                } catch (IllegalArgumentException e) {
+                    throw new BizException(40001, "请先上传头像，不能保存临时图片路径");
+                }
+            }
+            u.setAvatarUrl(avatar);
+        }
+        if (r.getNickname() != null) {
+            String nickname = r.getNickname().trim();
+            if (nickname.isEmpty() || nickname.length() > 32)
+                throw new BizException(40001, "昵称长度应为1到32个字符");
+            u.setNickname(nickname);
+        }
+        if (r.getCity() != null) u.setCity(r.getCity());
+        if (r.getCountry() != null) u.setCountry(r.getCountry());
+        if (r.getGender() != null) u.setGender(r.getGender());
+        if (r.getProvince() != null) u.setProvince(r.getProvince());
         u.setUpdatedAt(LocalDateTime.now());
-        mapper.updateById(u);
+        if (mapper.updateById(u) != 1) throw new BizException(50000, "资料保存失败，请重试");
         return u;
     }
 

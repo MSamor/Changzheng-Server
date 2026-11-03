@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   application:
     name: changzheng-server
   profiles:
@@ -13,3 +17,8 @@ wechat:
   app-id: ${WECHAT_APP_ID:wx49959108d8ab42c8}
   app-secret: ${WECHAT_APP_SECRET:8faa19951e6dfbe2f888dca4be660752}
   mock: ${WECHAT_MOCK:false}
+
+app:
+  upload:
+    directory: ${APP_UPLOAD_DIRECTORY:data/uploads}
+    public-base-url: ${APP_PUBLIC_BASE_URL:}

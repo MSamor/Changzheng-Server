@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.changzheng.vo.UserProfileVO;
+import com.changzheng.config.UploadProperties;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/home")
@@ -20,6 +24,8 @@ public class HomeController {
     private final WechatService wechat;
     private final UserService users;
     private final StepService steps;
+    private final AvatarStorageService avatars;
+    private final UploadProperties uploads;
 
     @GetMapping("/getUserIdByCode/{code}")
     public ApiResponse<Map<String, Long>> login(@PathVariable String code) {
@@ -45,7 +51,22 @@ public class HomeController {
     }
 
     @PostMapping("/saveUserInfo")
-    public ApiResponse<User> save(@Valid @RequestBody SaveUserInfoRequest r) {
-        return ApiResponse.success(users.update(r));
+    public ApiResponse<UserProfileVO> save(@Valid @RequestBody SaveUserInfoRequest r) {
+        return ApiResponse.success(UserProfileVO.from(users.update(r)));
+    }
+
+    @GetMapping("/userInfo/{userId}")
+    public ApiResponse<UserProfileVO> profile(@PathVariable Long userId) {
+        return ApiResponse.success(UserProfileVO.from(users.get(userId)));
+    }
+
+    @PostMapping(value = "/avatar", consumes = "multipart/form-data")
+    public ApiResponse<Map<String, String>> avatar(@RequestParam Long userId, @RequestParam MultipartFile file) {
+        users.get(userId);
+        String path = avatars.store(file);
+        String base = uploads.getPublicBaseUrl();
+        if (base == null || base.isBlank())
+            base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        return ApiResponse.success(Map.of("avatarUrl", base.replaceAll("/+$", "") + path));
     }
 }
