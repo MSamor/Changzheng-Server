@@ -52,6 +52,7 @@ class ProfileIntegrationTest {
     @Autowired ObjectMapper json;
     @Autowired UserMapper users;
     @Autowired StepService steps;
+    @Autowired com.changzheng.service.WechatService wechat;
     @Autowired StepExchangeMapper exchanges;
     private User user;
 
@@ -67,6 +68,31 @@ class ProfileIntegrationTest {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         users.insert(user);
+    }
+
+    @Test
+    void newLoginPersistsDefaultNicknameAndPreservesCustomProfile() {
+        String code = UUID.randomUUID().toString();
+        User created = wechat.login(code);
+        assertThat(users.selectById(created.getId()).getNickname()).isEqualTo("长征参与者");
+        assertThat(created.getAvatarUrl()).isNullOrEmpty();
+        created.setNickname("自己的昵称");
+        created.setAvatarUrl("https://example.test/custom.png");
+        users.updateById(created);
+        User again = wechat.login(code);
+        assertThat(again.getNickname()).isEqualTo("自己的昵称");
+        assertThat(again.getAvatarUrl()).isEqualTo("https://example.test/custom.png");
+    }
+
+    @Test
+    void blankLegacyNicknameUsesDefaultInProfileAndRank() throws Exception {
+        user.setNickname(" ");
+        users.updateById(user);
+        mvc.perform(get("/home/userInfo/" + user.getId()))
+                .andExpect(jsonPath("$.data.nickname").value("长征参与者"));
+        mvc.perform(get("/rank/getAllRank").param("userId", user.getId().toString()))
+                .andExpect(jsonPath("$.data.allRank[?(@.userId == " + user.getId() + ")].nickname")
+                        .value(org.hamcrest.Matchers.hasItem("长征参与者")));
     }
 
     @Test
