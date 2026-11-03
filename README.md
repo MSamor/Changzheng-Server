@@ -13,7 +13,7 @@
 mvn spring-boot:run
 ```
 
-默认端口 `8080`，SQLite 数据文件为 `./changzheng.db`。默认 `WECHAT_MOCK=true`，适合本地联调；生产环境请设置：
+默认端口 `9555`，SQLite 数据文件为 `./changzheng.db`。默认 `WECHAT_MOCK=false`；本地模拟联调可设置 `WECHAT_MOCK=true`，生产环境请设置：
 
 ```bash
 WECHAT_MOCK=false WECHAT_APP_ID=xxx WECHAT_APP_SECRET=xxx mvn spring-boot:run
@@ -26,6 +26,25 @@ mvn spring-boot:run -Dspring-boot.run.profiles=mysql
 ```
 
 并设置 `MYSQL_HOST`、`MYSQL_PORT`、`MYSQL_DATABASE`、`MYSQL_USERNAME`、`MYSQL_PASSWORD`。
+
+## 构建发布
+
+执行完整测试并生成可运行 JAR：
+
+```bash
+mvn clean package
+java -jar target/changzheng-server-0.0.1-SNAPSHOT.jar
+```
+
+当前配置默认端口为 `9555`，使用 SQLite 时数据库路径相对于启动工作目录。发布前设置 `WECHAT_APP_ID`、`WECHAT_APP_SECRET`、`WECHAT_MOCK=false`，并保留数据库及上传目录。
+
+SQL 初始化脚本统一按 UTF-8 读取，避免 Windows/GBK 环境将中文城市名写成乱码。可在 PowerShell 中运行以下命令验证 GBK 环境下的全部测试及打包：
+
+```powershell
+mvn clean package '-DargLine=-Dfile.encoding=GBK'
+```
+
+编码配置只影响后续 SQL 脚本读取。已有数据库若已写入乱码，`INSERT OR IGNORE` 不会覆盖这些记录；发布前备份数据库，再按 `db/data.sql` 核对并修正 `route_nodes` 的城市名、图片路径、详情，以及 `system_configs` 的描述。保留业务数据时不要删除数据库。
 
 ## 兼容接口
 

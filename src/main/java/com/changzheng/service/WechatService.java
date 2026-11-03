@@ -1,6 +1,7 @@
 package com.changzheng.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.changzheng.common.ProfileDefaults;
 import com.changzheng.common.BizException;
 import com.changzheng.config.WechatProperties;
 import com.changzheng.entity.*;
@@ -84,6 +85,7 @@ public class WechatService {
         if (user == null) {
             user = new User();
             user.setOpenid(openid);
+            user.setNickname(ProfileDefaults.NICKNAME);
             user.setUnionid(unionid);
             user.setStatus(1);
             user.setCreatedAt(LocalDateTime.now());

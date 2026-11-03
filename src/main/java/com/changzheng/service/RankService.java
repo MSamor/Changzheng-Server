@@ -1,6 +1,7 @@
 package com.changzheng.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.changzheng.common.ProfileDefaults;
 import com.changzheng.entity.*;
 import com.changzheng.mapper.*;
 import com.changzheng.vo.*;
@@ -51,7 +52,7 @@ public class RankService {
                             RankUserVO v = new RankUserVO();
                             v.setUserId(u.getId());
                             v.setAvatarUrl(u.getAvatarUrl());
-                            v.setNickname(u.getNickname());
+                            v.setNickname(ProfileDefaults.nickname(u.getNickname()));
                             v.setTotalMileage(scores.getOrDefault(u.getId(), BigDecimal.ZERO));
                             v.setArrivedCityName(arrived(total.getOrDefault(u.getId(), BigDecimal.ZERO)));
                             return v;
