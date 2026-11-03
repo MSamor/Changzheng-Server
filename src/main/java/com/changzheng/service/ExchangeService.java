@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -30,9 +31,9 @@ public class ExchangeService {
                                 .eq("exchange_date", d));
         if (old != null) return old;
         int steps = stepService.today(userId);
-        int unit = config.intValue("step_unit", 100),
-                mileageUnit = config.intValue("mileage_unit", 20),
-                min = config.intValue("minimum_exchange_steps", 100);
+        ConfigService.ExchangeRules rules = config.exchangeRules();
+        int unit = rules.stepUnit(), min = rules.minimumExchangeSteps();
+        BigDecimal mileageUnit = rules.mileageUnit();
         if (steps < min) throw new BizException(40005, "步数不足，暂不能兑换");
         StepExchange x = new StepExchange();
         x.setUserId(userId);
@@ -40,7 +41,7 @@ public class ExchangeService {
         x.setStepCount(steps);
         x.setStepUnit(unit);
         x.setMileageUnit(mileageUnit);
-        x.setMileage((steps / unit) * mileageUnit);
+        x.setMileage(mileageUnit.multiply(BigDecimal.valueOf(steps / unit)));
         x.setStatus(1);
         x.setCreatedAt(LocalDateTime.now());
         x.setUpdatedAt(LocalDateTime.now());
@@ -53,12 +54,12 @@ public class ExchangeService {
         }
     }
 
-    public int totalMileage(Long userId) {
+    public BigDecimal totalMileage(Long userId) {
         return mapper
                 .selectList(new QueryWrapper<StepExchange>().eq("user_id", userId).eq("status", 1))
                 .stream()
-                .mapToInt(StepExchange::getMileage)
-                .sum();
+                .map(StepExchange::getMileage)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public int todaySteps(Long userId) {
@@ -80,13 +81,13 @@ public class ExchangeService {
                 > 0;
     }
 
-    public int todayMileage(Long userId) {
+    public BigDecimal todayMileage(Long userId) {
         StepExchange x =
                 mapper.selectOne(
                         new QueryWrapper<StepExchange>()
                                 .eq("user_id", userId)
                                 .eq("exchange_date", LocalDate.now())
                                 .eq("status", 1));
-        return x == null ? 0 : x.getMileage();
+        return x == null ? BigDecimal.ZERO : x.getMileage();
     }
 }

@@ -1,7 +1,9 @@
+-- 默认目标：甘肃180公里；每天5000步兑换6公里，连续30天到达。
+-- 按完整单位兑换：500步=0.6公里；每天最多兑换一次，不足一个单位不产生里程。
 INSERT OR IGNORE INTO system_configs(config_key,config_value,description,created_at,updated_at) VALUES
-('step_unit','100','每次兑换的步数单位',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
-('mileage_unit','20','每个步数单位对应的路线里程',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
-('minimum_exchange_steps','100','最低兑换步数',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+('step_unit','500','每个兑换单位500步（每天5000步约30天到甘肃）',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
+('mileage_unit','0.6','每500步兑换0.6公里，甘肃终点180公里',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
+('minimum_exchange_steps','500','最低兑换步数500步，每天最多兑换一次',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
 INSERT OR IGNORE INTO route_nodes(node_order,local_id,city_name,longitude,latitude,required_mileage,badge_code,city_image,city_detail,enabled,created_at,updated_at) VALUES
 (1,'0','瑞金',116.032847,25.895306,0,'sign1','../../images/mipmap-hdpi/flag/瑞金.png','中央红军长征出发地，红色历史文化城市。',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
 (2,'1','乌江',107.412039,27.319326,20,'sign2','../../images/mipmap-hdpi/flag/乌江.png','乌江是红军长征途中重要的渡江地点。',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),

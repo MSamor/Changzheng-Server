@@ -1,6 +1,7 @@
 package com.changzheng.vo;
 
 import lombok.Data;
+import java.math.BigDecimal;
 
 import java.util.*;
 
@@ -11,5 +12,5 @@ public class RankDataVO {
     private int myAllRank;
     private int myTodayRank;
     private int totalPeople;
-    private int totalMileage;
+    private BigDecimal totalMileage;
 }

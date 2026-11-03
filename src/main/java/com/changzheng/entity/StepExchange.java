@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.time.*;
+import java.math.BigDecimal;
 
 @Data
 @TableName("step_exchanges")
@@ -21,13 +22,13 @@ public class StepExchange {
     @TableField("step_count")
     private Integer stepCount;
 
-    private Integer mileage;
+    private BigDecimal mileage;
 
     @TableField("step_unit")
     private Integer stepUnit;
 
     @TableField("mileage_unit")
-    private Integer mileageUnit;
+    private BigDecimal mileageUnit;
 
     private Integer status;
 

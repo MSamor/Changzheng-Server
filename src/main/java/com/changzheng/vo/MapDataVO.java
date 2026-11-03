@@ -1,6 +1,7 @@
 package com.changzheng.vo;
 
 import lombok.Data;
+import java.math.BigDecimal;
 
 import java.util.*;
 
@@ -13,15 +14,15 @@ public class MapDataVO {
     private boolean exchangedToday;
     private int minimumExchangeSteps;
     private int stepUnit;
-    private int mileageUnit;
+    private BigDecimal mileageUnit;
     private long daysElapsed;
     private int medal;
     // Null when route data is unavailable; zero only after completing the route.
-    private Integer nextStopKilometer;
+    private BigDecimal nextStopKilometer;
     private boolean routeCompleted;
     private List<PointVO> points;
     private int todayRedeemedSteps;
-    private int totalMileage;
+    private BigDecimal totalMileage;
 
     @Data
     public static class PointVO {

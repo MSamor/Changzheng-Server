@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.*;
 
@@ -24,11 +25,11 @@ public class RankService {
         List<User> users = userMapper.selectList(new QueryWrapper<User>().eq("status", 1));
         List<StepExchange> all =
                 exchangeMapper.selectList(new QueryWrapper<StepExchange>().eq("status", 1));
-        Map<Long, Integer> total = new HashMap<>(), today = new HashMap<>();
+        Map<Long, BigDecimal> total = new HashMap<>(), today = new HashMap<>();
         for (StepExchange x : all) {
-            total.merge(x.getUserId(), x.getMileage(), Integer::sum);
+            total.merge(x.getUserId(), x.getMileage(), BigDecimal::add);
             if (LocalDate.now().equals(x.getExchangeDate()))
-                today.merge(x.getUserId(), x.getMileage(), Integer::sum);
+                today.merge(x.getUserId(), x.getMileage(), BigDecimal::add);
         }
         List<RankUserVO> allList = make(users, total, total);
         List<RankUserVO> todayList = make(users, today, total);
@@ -36,14 +37,14 @@ public class RankService {
         out.setAllRank(allList);
         out.setTodayRank(todayList);
         out.setTotalPeople(users.size());
-        out.setTotalMileage(total.values().stream().mapToInt(Integer::intValue).sum());
+        out.setTotalMileage(total.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add));
         out.setMyAllRank(rankOf(allList, me));
         out.setMyTodayRank(rankOf(todayList, me));
         return out;
     }
 
     private List<RankUserVO> make(
-            List<User> users, Map<Long, Integer> scores, Map<Long, Integer> total) {
+            List<User> users, Map<Long, BigDecimal> scores, Map<Long, BigDecimal> total) {
         return users.stream()
                 .map(
                         u -> {
@@ -51,12 +52,12 @@ public class RankService {
                             v.setUserId(u.getId());
                             v.setAvatarUrl(u.getAvatarUrl());
                             v.setNickname(u.getNickname());
-                            v.setTotalMileage(scores.getOrDefault(u.getId(), 0));
-                            v.setArrivedCityName(arrived(total.getOrDefault(u.getId(), 0)));
+                            v.setTotalMileage(scores.getOrDefault(u.getId(), BigDecimal.ZERO));
+                            v.setArrivedCityName(arrived(total.getOrDefault(u.getId(), BigDecimal.ZERO)));
                             return v;
                         })
                 .sorted(
-                        Comparator.comparingInt(RankUserVO::getTotalMileage)
+                        Comparator.comparing(RankUserVO::getTotalMileage)
                                 .reversed()
                                 .thenComparing(RankUserVO::getUserId))
                 .collect(Collectors.toList());
@@ -68,10 +69,10 @@ public class RankService {
         return 0;
     }
 
-    private String arrived(int mileage) {
+    private String arrived(BigDecimal mileage) {
         String result = "瑞金";
         for (RouteNode n : routeService.nodes())
-            if (mileage >= n.getRequiredMileage()) result = n.getCityName();
-        return mileage <= 0 ? "瑞金" : result;
+            if (mileage.compareTo(BigDecimal.valueOf(n.getRequiredMileage())) >= 0) result = n.getCityName();
+        return mileage.signum() <= 0 ? "瑞金" : result;
     }
 }

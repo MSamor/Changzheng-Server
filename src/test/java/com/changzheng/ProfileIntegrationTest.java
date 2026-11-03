@@ -1,6 +1,11 @@
 package com.changzheng;
 
 import com.changzheng.entity.User;
+import com.changzheng.entity.StepExchange;
+import com.changzheng.mapper.StepExchangeMapper;
+import com.changzheng.service.StepService;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import com.changzheng.mapper.UserMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +51,8 @@ class ProfileIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired UserMapper users;
+    @Autowired StepService steps;
+    @Autowired StepExchangeMapper exchanges;
     private User user;
 
     @BeforeEach
@@ -122,5 +129,81 @@ class ProfileIntegrationTest {
     void rejectsUnknownUserBeforeWritingAvatar() throws Exception {
         mvc.perform(multipart("/home/avatar").file(new MockMultipartFile("file", "x.png", "image/png", new byte[]{1}))
                 .param("userId", "9223372036854775807")).andExpect(jsonPath("$.code").value(40002));
+    }
+
+    @Test
+    void fiveHundredStepsRedeemsFractionalMileageAndCannotBeRedeemedTwice() throws Exception {
+        steps.saveMax(user.getId(), 499);
+        mvc.perform(put("/map/exchangeSteps/" + user.getId())).andExpect(jsonPath("$.code").value(40005));
+        steps.saveMax(user.getId(), 500);
+        mvc.perform(put("/map/exchangeSteps/" + user.getId()))
+                .andExpect(jsonPath("$.code").value(0)).andExpect(jsonPath("$.data.mileage").value(0.6));
+        steps.saveMax(user.getId(), 5000);
+        mvc.perform(put("/map/exchangeSteps/" + user.getId()))
+                .andExpect(jsonPath("$.data.mileage").value(0.6));
+        mvc.perform(get("/map/getAllData/" + user.getId()))
+                .andExpect(jsonPath("$.data.totalMileage").value(0.6))
+                .andExpect(jsonPath("$.data.nextStopKilometer").value(19.4))
+                .andExpect(jsonPath("$.data.stepUnit").value(500))
+                .andExpect(jsonPath("$.data.mileageUnit").value(0.6))
+                .andExpect(jsonPath("$.data.minimumExchangeSteps").value(500))
+                .andExpect(jsonPath("$.data.convertSteps").value(0));
+        mvc.perform(get("/rank/getAllRank").param("userId", user.getId().toString()))
+                .andExpect(jsonPath("$.data.allRank[?(@.userId == " + user.getId() + ")].totalMileage")
+                        .value(org.hamcrest.Matchers.hasItem(0.6)));
+    }
+
+    @Test
+    void thirtyDaysOfFiveThousandStepsReachGansuWithExactTotal() throws Exception {
+        for (int day = 1; day <= 29; day++) {
+            StepExchange exchange = new StepExchange();
+            exchange.setUserId(user.getId());
+            exchange.setExchangeDate(LocalDate.now().minusDays(day));
+            exchange.setStepCount(5000);
+            exchange.setMileage(new BigDecimal("6"));
+            exchange.setStepUnit(500);
+            exchange.setMileageUnit(new BigDecimal("0.6"));
+            exchange.setStatus(1);
+            exchange.setCreatedAt(LocalDateTime.now());
+            exchange.setUpdatedAt(LocalDateTime.now());
+            exchanges.insert(exchange);
+        }
+        mvc.perform(get("/map/getAllData/" + user.getId()))
+                .andExpect(jsonPath("$.data.totalMileage").value(174))
+                .andExpect(jsonPath("$.data.nextStopKilometer").value(6))
+                .andExpect(jsonPath("$.data.routeCompleted").value(false));
+        steps.saveMax(user.getId(), 5000);
+        String response = mvc.perform(put("/map/exchangeSteps/" + user.getId()))
+                .andExpect(jsonPath("$.code").value(0)).andReturn().getResponse().getContentAsString();
+        assertThat(json.readTree(response).path("data").path("mileage").decimalValue())
+                .isEqualByComparingTo("6");
+        mvc.perform(get("/map/getAllData/" + user.getId()))
+                .andExpect(jsonPath("$.data.totalMileage").value(180))
+                .andExpect(jsonPath("$.data.nextStopKilometer").value(0))
+                .andExpect(jsonPath("$.data.arrivedCityName").value("甘肃"))
+                .andExpect(jsonPath("$.data.routeCompleted").value(true));
+    }
+
+    @Test
+    void partialUnitsRoundDownAndDecimalAccumulationStaysExact() throws Exception {
+        steps.saveMax(user.getId(), 999);
+        mvc.perform(put("/map/exchangeSteps/" + user.getId()))
+                .andExpect(jsonPath("$.data.mileage").value(0.6));
+        for (int day = 1; day <= 2; day++) {
+            StepExchange exchange = new StepExchange();
+            exchange.setUserId(user.getId());
+            exchange.setExchangeDate(LocalDate.now().minusDays(day));
+            exchange.setStepCount(500);
+            exchange.setMileage(new BigDecimal("0.6"));
+            exchange.setStepUnit(500);
+            exchange.setMileageUnit(new BigDecimal("0.6"));
+            exchange.setStatus(1);
+            exchange.setCreatedAt(LocalDateTime.now());
+            exchange.setUpdatedAt(LocalDateTime.now());
+            exchanges.insert(exchange);
+        }
+        mvc.perform(get("/map/getAllData/" + user.getId()))
+                .andExpect(jsonPath("$.data.totalMileage").value(1.8))
+                .andExpect(jsonPath("$.data.nextStopKilometer").value(18.2));
     }
 }
