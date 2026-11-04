@@ -24,4 +24,4 @@ wechat:
 app:
   upload:
     directory: ${APP_UPLOAD_DIRECTORY:data/uploads}
-    public-base-url: ${APP_PUBLIC_BASE_URL:}
+    public-base-url: ${APP_PUBLIC_BASE_URL:https://heyun.tech/changzheng/}
