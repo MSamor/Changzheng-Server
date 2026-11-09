@@ -17,8 +17,8 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
 wechat:
-  app-id: ${WECHAT_APP_ID:wx0f8cec8d05f9bbfd}
-  app-secret: ${WECHAT_APP_SECRET:8aa4158a3676e1dd5f912eb3f8af91b3}
+  app-id: ${WECHAT_APP_ID:wxd8614c2945199345}
+  app-secret: ${WECHAT_APP_SECRET:45785ba1ec2eb61fd644a4e5b3840b4d}
   mock: ${WECHAT_MOCK:false}
 
 app:
